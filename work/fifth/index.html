@@ -112,7 +112,7 @@
         //要素のみ.show。それ以外の要素は.hide。
         else{
           $(".list").children().each(function(){
-            if($(this).attr("date-category-type") === selected ){
+            if($(this).data("category-type") === selected ){
               $(this).show();
             }
             else{$(this).hide();
