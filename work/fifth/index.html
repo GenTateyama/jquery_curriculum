@@ -84,6 +84,7 @@
     </div>
     <script src="../../common/js/jquery.js"></script>
     <script>
+    $(function(){
       // 今回やるのはソート機能です。
       // selectボックスをクリックして言語を選び、その言語と関係のあるリストだけが表示されるプログラムです。
       // [処理の流れ]
@@ -94,9 +95,32 @@
       // .show() 要素を表示させる
       // .hide() 要素を隠す
       // .val() 要素のvalueを取得
-      // .data('') DOM要素にあるdata-~を取得できる
-      // .change() セレクトボックスの値の変更をキャッチする関数
-      // $().each() DOM要素を1つずつループ処理をする（ループ内で$(this)を使うと要素がひとつずつ取得できる）
+      // .data('') DOM要素にあるdata-~を取得できる →これとvalで抜き出した値を一致させる
+      // .change() セレクトボックスの値の変更をキャッチする関数。
+      //「change()」は、主にinput / select / textarea/などの要素の中身が変更された際にイベント処理を実行することができます。
+      // $().each() DOM要素を1つずつループ処理をする（ループ内で$(this)を使うと要素がひとつずつ取得できる。）
+      //→これはallに使う繰り返し処理！
+      $(".select").change(function(){
+        var selected = $(this).val();
+        //allか否か
+        if(selected === "all"){
+          $(".list").children().each(function(){
+            $(this).show();
+          });
+        }
+        //否 → $(".list").children　を上から評価(each)し、変数selectedとdataのvalueが等しい
+        //要素のみ.show。それ以外の要素は.hide。
+        else{
+          $(".list").children().each(function(){
+            if($(this).attr("date-category-type") === selected ){
+              $(this).show();
+            }
+            else{$(this).hide();
+            }
+          });
+        }
+      });
+    });
     </script>
   </body>
 </html>

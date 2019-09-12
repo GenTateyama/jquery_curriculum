@@ -24,13 +24,23 @@
     </div>
     <script src="../../common/js/jquery.js"></script>
     <script>
+    $(function(){
       // 今回やるのはタブメニューです。
       // navの小要素であるliをクリックして、contents内の小要素であるli要素を表示させる。
       // .index() 要素のindexを取得します。
       // .eq() 引数に応じたindexの要素を指定します。
       // .addClass() クラスを追加します。
       // .removeClass() クラスを削除します。
+      $(".nav").children().click(function(){
+        //クリックされた要素のインデックス番号を取得→変数に代入
+        var $clickedNavNumber = $(this).index();
+        //クリックされたnav要素に対応したcontents要素を取得→変数に代入。非表示用のクラスを取り除く
+        var $conectedText = $(".contents").children().eq($clickedNavNumber)
+        $conectedText.removeClass("is-hidden");
+        //その他のcontentsクラスには非表示用のクラスを追加
+        $(".contents").children().not($conectedText).addClass("is-hidden");
+      });
+    });
     </script>
   </body>
 </html>
-
