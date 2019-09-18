@@ -25,7 +25,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 2400px;
+  width: 2400px; /*画像４枚分ピッタリとり、４枚をフロートで横並び。
+  　　　　　　　　　slider-areaからはみ出た分は非表示*/
   height: 300px;
 }
 .slider-list > li { float: left; }

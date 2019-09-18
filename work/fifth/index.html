@@ -103,19 +103,15 @@
       $(".select").change(function(){
         var selected = $(this).val();
         //allか否か
+          $(".list").children().hide();        
         if(selected === "all"){
-          $(".list").children().each(function(){
-            $(this).show();
-          });
-        }
-        //否 → $(".list").children　を上から評価(each)し、変数selectedとdataのvalueが等しい
-        //要素のみ.show。それ以外の要素は.hide。
-        else{
+          $(".list").children().show();
+        } else {
+          //否 → $(".list").children　を上から評価(each)し、変数selectedとdataのvalueが等しい
+          //要素のみ.show。それ以外の要素は.hide。
           $(".list").children().each(function(){
             if($(this).data("category-type") === selected ){
               $(this).show();
-            }
-            else{$(this).hide();
             }
           });
         }

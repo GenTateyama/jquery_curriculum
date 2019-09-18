@@ -21,7 +21,7 @@
           </div>
           <button id="js-search-button" class="search__btn">検索する</button>
         </div>
-        <ul class="lists"></ul>
+        <ul class="lists"> <!--　ここに処理を追加する　--></ul>
       </div>
     </div>
     <script src="../../common/js/jquery.js"></script>
@@ -38,36 +38,117 @@
       // $.ajax({}) 外部ファイルやURLに対してデータをリクエストすることができます。
       // 以下は今回使う$.ajaxの基本的な形です。
       //
-      // $.ajax({
-      //   url: 'https://app.rakuten.co.jp/services/api/BooksTotal/Search/20130522',
-      //   type: 'GET',
-      //   datatype: 'json',
-      //   data: {
-      //     // 「区分:サービス固有パラメーター」を確認して、必要な情報をdata内に入れましょう。
-      //     applicationId: '1019399324990976605', // (今回はこのIDを使用してください)
-      //     booksGenreId: '001'
-      //   },
-      // }).done(function(data) {
-      //   // この中にデータ取得後の動きを記述していきます。
-      //   console.log(data);
-      // });
-      //
-      //
-      // $.ajaxによってデータが取得できたら、必要なデータ(作品名とか作者名とか)を取得します。
-      // 取得できたらHTMLに<ul class='lists'></ul>を用意しているので、その中に下のテンプレに沿ってデータを入れ込みましょう。
-      // <li class='lists__item'>
-      //  <div class='lists__item__inner'>
-      //    <a href='' class='lists__item__link' target='_blank'>
-      //      <img src='' class='lists__item__img' alt=''>
-      //      <p class='lists__item__detail'>作品名：</p>
-      //      <p class='lists__item__detail'>作者　：</p>
-      //      <p class='lists__item__detail'>出版社：</p>
-      //    </a>
-      //  </div>
-      // </li>
-      //
-      //
-      //
+
+
+      $(function(){
+
+        var inputWord = ""; // クリックメソッドの関数内で宣言はしたくないため（クリックのたびに宣言→値がリセットされてしまう）、初期値として空のまま定義。
+        var beforeWord = ""; // これ以降はクリックイベント内の値が引き継がれ、変化していく。
+        var countUpValue = 1;  //「連続で入力された回数」のカウンタの初期値を設定。　click()内で定義すると毎回1にリセットされてしまう。
+        var resultNothing = $(
+          "<div class = 'message' >" +
+            "検索結果が見つかりませんでした。" +
+            "<br>" +
+            "別のキーワードで検索して下さい。" +
+          "</div>"
+        );
+
+        $("#js-search-button").click(function(){
+          inputWord = $("#js-search-word").val(); //value(検索ワード)を取得して代入。
+    //-----------------------ここから再検索時の処理---------------------------------------------------------------------
+          if(inputWord === beforeWord){ //前回の値と今回の値を比較
+            countUpValue ++;
+          } else {
+            $(".lists").empty(); // ulの中身を空にする(リセット)
+            countUpValue = 1
+          };
+          beforeWord = inputWord // 入力値（inputWord）を記憶。次回の比較に用いる。
+          console.log(countUpValue);
+    //-----------------------ここからajaxのデータ送受信---------------------------------------------------------------------
+         $.ajax({
+           url: 'https://app.rakuten.co.jp/services/api/BooksTotal/Search/20130522',
+           type: 'GET',
+           datatype: 'json',
+           data: {
+             // 入力パラメーターの　共通パラメーター
+             applicationId: "1019399324990976605", // (今回はこのIDを使用してください)
+             booksGenreId: "001",
+             formatVersion: "2", // 出力された配列が見やすくなる
+             // 入力パラメーターの　固有パラメーター
+             keyword: inputWord, // 上で定義した変数。フォームに入力された値が入っている。
+             hits: "20",  // １ページあたりの取得件数
+             page: countUpValue // ページ上限＋１でエラー文を表示したい
+           }
+         }).done(function(data) {   // -----------------------ここからデータ取得後の処理---------------------------------------------------------------------
+          // この中にデータ取得後の動きを記述していきます。
+          // とりあえず、取得したデータを目で確認するためにコンソール。実装時はコメントアウト。
+           console.log(data);
+           if(data.count > 0){
+             var resultArray = [];
+             $.each(data.Items, function getData (index, val) {
+              // 必要な出力パラメーターを変数にする
+              var resultUrl = val.itemUrl;
+              var resultImage = val.mediumImageUrl;
+              var resultTitle = val.title;
+              var resultAuthor = val.author;
+              var resultPublisherName = val.publisherName;
+              // テンプレートリテラルは使えないので、文字列にして＋でつなげることで改行を可能にする
+              var result = $( //jQueryオブジェクト内のテキストとして定義。
+                "<li class='lists__item'>" +
+                  "<div class='lists__item__inner'>" +
+                    "<a href='" + resultUrl + "' class=$('lists__item__link') target='_blank'>" +  //  &emsp; は全角スペースを入れるための特殊文字
+                      "<img src='" + resultImage + "' class='lists__item__img' alt=''>" +
+                      "<p class='lists__item__detail'>作品名：&emsp;" + resultTitle + "</p>" +
+                      "<p class='lists__item__detail'>作者　：&emsp;" + resultAuthor + "</p>" +
+                      "<p class='lists__item__detail'>出版社：&emsp;" + resultPublisherName + "</p>" +
+                    "</a>"+
+                  "</div>"+
+                "</li>"
+                );
+              resultArray.push(result); // jQuery要素を配列として収納（昇順に並べる。prependの役割）
+             });  // each,if 終了。
+             $(".lists").prepend(resultArray); // prependで配列を上に積み重ねる。
+           } else {
+            $(".lists").prepend(resultNothing); // 何もヒットしなかったときの処理。関数はclickメソッドの外
+           } // else終了
+           // dane終了
+         }).fail(function(data){
+      // -----------------------ここからデータ取得失敗後の処理---------------------------------------------------------------------
+           // 取得失敗時の処理を記入していく。エラー内容によって表示する文言を変える。
+           // 今回の場合正常に通信できないときは、⓵検索ワードの指定がないとき、⓶検索ワードが半角英数字1文字のとき、
+           // ⓷「検索する」を連打したとき、⓸ネットが切れているときなどです。 →これらを条件指定する必要はない。エラーに対して帰ってきたJSONファイルのvalueに対応させる。
+           var errorStatus = data.status;
+           var otherBadResult = $(
+             "<div class = 'message' >ネットワークに接続されていません。ネットワークの接続状況を確認してください。</div>"
+           )
+           console.log(data);
+           console.log(errorMessage);
+           console.log(errorStatus);
+
+      　// -----------------------ここまでエラーの種類、エラーメッセージの変数化。　どう条件分岐させる？------------------------------------
+            $(".lists").empty();
+            if(errorStatus == 0){ // ----------HTTPと通信ができていない＝  Ajaxがデフォルトのステータス番号0を返す-------------------
+              $(".lists").prepend(otherBadResult);
+            } else {  //-----------それぞれのステータス番号に対応したエラーメッセージを表示------------------------------------------
+              var errorMessage = data.responseJSON.error_description;
+              var badResult = $(
+                "<div class = 'message' >" + errorMessage + "</div>"
+              )
+              $(".lists").prepend(badResult);
+            }
+         }); // fail終了
+
+       });  // clickメソッド終了
+     }); // $(function) 終了
+        //　　～　Ajaxで取得したデータをどう活用するか　→　HTMLに記述　～
+        // $.ajaxによってデータが取得できたら、必要なデータ(作品名とか作者名とか)を取得します。
+        // 取得できたらHTMLに<ul class='lists'></ul>を用意しているので、その中に下のテンプレに沿ってデータを入れ込みましょう。
+        // 出力パラメーター
+        // first: 	検索結果の何件目からか 　　
+        // last:   検索結果の何件目までか
+        // title:  題名
+        // author: 著者名
+        // publisherName:  出版社名
     </script>
   </body>
 </html>
